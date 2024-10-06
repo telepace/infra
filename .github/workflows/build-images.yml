@@ -1,0 +1,112 @@
+name: Docker Build and Push
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'       # 例如 v1.0.0, v2.1.3
+      - 'v*.*.*-*'     # 例如 v1.0.0-beta.1
+    branches:
+      - main
+  workflow_dispatch:
+
+jobs:
+  build-and-push:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - project: django
+            context: .
+            dockerfile: ./compose/production/django/Dockerfile
+            architectures: linux/amd64,linux/arm64
+          - project: postgres
+            context: .
+            dockerfile: ./compose/production/postgres/Dockerfile
+            architectures: linux/amd64,linux/arm64
+          - project: traefik
+            context: .
+            dockerfile: ./compose/production/traefik/Dockerfile
+            architectures: linux/amd64,linux/arm64
+          - project: nginx
+            context: .
+            dockerfile: ./compose/production/nginx/Dockerfile
+            architectures: linux/amd64,linux/arm64
+          - project: awscli
+            context: .
+            dockerfile: ./compose/production/aws/Dockerfile
+            architectures: linux/amd64,linux/arm64
+
+    steps:
+      # 1. 检出代码
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # 确保获取所有标签
+
+      # 2. 设置 Docker Buildx
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3. 登录 Docker Hub
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      # 4. 登录阿里云容器注册表
+      - name: Log in to AliYun Docker Registry
+        uses: docker/login-action@v3
+        with:
+          registry: registry.cn-hangzhou.aliyuncs.com
+          username: ${{ secrets.ALIREGISTRY_USERNAME }}
+          password: ${{ secrets.ALIREGISTRY_TOKEN }}
+
+      # 5. 登录 GitHub Container Registry
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.repository_owner }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # 6. 获取 Docker 元数据
+      - name: Get Docker metadata
+        id: metadata
+        uses: docker/metadata-action@v5
+        with:
+          images: |
+            docker.io/yourdockerhubusername/ai_feedback_production_${{ matrix.project }}
+            registry.cn-hangzhou.aliyuncs.com/youraliyunusername/ai_feedback_production_${{ matrix.project }}
+            ghcr.io/yourgithubusername/ai_feedback_production_${{ matrix.project }}
+          tags: |
+            type=ref,event=tag
+            type=semver,pattern={{version}}
+            type=semver,pattern=v{{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha
+
+      # 7. 构建并推送 Docker 镜像
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.metadata.outputs.tags }}
+          platforms: ${{ matrix.architectures }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      # 8. 安全扫描（可选）
+      - name: Scan Docker image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.24.0
+        with:
+          image-ref: yourdockerhubusername/ai_feedback_production_${{ matrix.project }}:${{ steps.metadata.outputs.version }}
+          format: 'table'
+          exit-code: '0'
+
+      # 9. 清理未使用的 Docker 镜像
+      - name: Clean up Docker
+        run: docker system prune -f

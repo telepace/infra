@@ -1,0 +1,9 @@
+coverage:
+  status:
+    project:
+      default: false
+      pkg:
+        paths:
+          - ai_commons
+        informational: true
+    patch: off
