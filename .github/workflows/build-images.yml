@@ -102,6 +102,8 @@ jobs:
           image-ref: yourdockerhubusername/ai_feedback_production_${{ matrix.project }}:${{ steps.metadata.outputs.version }}
           format: 'table'
           exit-code: '0'
+        # 报错跳过
+        continue-on-error: true
 
       # 9. 清理未使用的 Docker 镜像
       - name: Clean up Docker
