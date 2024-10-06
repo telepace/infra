@@ -15,10 +15,6 @@ jobs:
     strategy:
       matrix:
         include:
-          - project: django
-            context: .
-            dockerfile: ./compose/production/django/Dockerfile
-            architectures: linux/amd64,linux/arm64
           - project: postgres
             context: .
             dockerfile: ./compose/production/postgres/Dockerfile
