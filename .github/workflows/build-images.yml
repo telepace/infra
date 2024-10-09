@@ -101,7 +101,7 @@ jobs:
 
       # 8. 安全扫描（可选）
       - name: Scan Docker image for vulnerabilities
-        uses: aquasecurity/trivy-action@0.24.0
+        uses: aquasecurity/trivy-action@0.25.0
         with:
           image-ref: yourdockerhubusername/ai_feedback_production_${{ matrix.project }}:${{ steps.metadata.outputs.version }}
           format: 'table'
