@@ -35,6 +35,15 @@ jobs:
             context: .
             dockerfile: ./compose/production/redis/Dockerfile
             architectures: linux/amd64,linux/arm64
+          - project: python
+            context: .
+            dockerfile: ./compose/production/python/Dockerfile
+            architectures: linux/amd64,linux/arm64
+          - project: python-3-12-slim-bookworm
+            context: .
+            dockerfile: ./compose/production/python-3-12-slim-bookworm/Dockerfile
+            architectures: linux/amd64,linux/arm64
+
 
     steps:
       # 1. 检出代码
