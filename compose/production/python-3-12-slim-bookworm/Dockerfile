@@ -32,8 +32,8 @@ RUN pip install --no-cache-dir \
     scipy
 
 # 创建非 root 用户，提升安全性
-RUN useradd -m telepace && chown -R telepace /app
-USER telepace
+# RUN useradd -m telepace && chown -R telepace /app
+# USER telepace
 
 # 设置 Python 环境变量
 ENV PYTHONUNBUFFERED=1 \
