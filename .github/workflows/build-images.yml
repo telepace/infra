@@ -35,6 +35,10 @@ jobs:
             context: .
             dockerfile: ./compose/production/redis/Dockerfile
             architectures: linux/amd64,linux/arm64
+          - project: redis8
+            context: .
+            dockerfile: ./compose/production/redis8/Dockerfile
+            architectures: linux/amd64,linux/arm64
           - project: python
             context: .
             dockerfile: ./compose/production/python/Dockerfile
