@@ -17,7 +17,7 @@ ENV LANG=en_US.UTF-8 \
     LC_ALL=en_US.UTF-8
 
 # 复制自定义配置文件
-COPY redis.conf /usr/local/etc/redis/redis.conf
+COPY ./compose/production/redis/redis.conf /usr/local/etc/redis/redis.conf
 
 # 设置工作目录
 WORKDIR /usr/local/etc/redis
