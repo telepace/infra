@@ -15,7 +15,7 @@ RUN set -ex; \
    && ln -s /usr/local/openresty/nginx/sbin/nginx /usr/local/bin/nginx \
    && kong version
   
-COPY docker-entrypoint.sh /docker-entrypoint.sh
+COPY ./compose/production/kong/docker-entrypoint.sh /docker-entrypoint.sh
   
 USER kong
   
