@@ -1,7 +1,7 @@
 
 FROM debian:bullseye-slim
   
-COPY kong.deb /tmp/kong.deb
+COPY ./compose/production/kong/kong-enterprise-edition_3.8.0.0_amd64.deb /tmp/kong.deb
   
 RUN set -ex; \
    apt-get update \
