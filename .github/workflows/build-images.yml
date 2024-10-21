@@ -47,7 +47,10 @@ jobs:
             context: .
             dockerfile: ./compose/production/python-3-12-slim-bookworm/Dockerfile
             architectures: linux/amd64,linux/arm64
-
+          - project: kong
+            context: .
+            dockerfile: ./compose/production/kong/Dockerfile
+            architectures: linux/amd64,linux/arm64
 
     steps:
       # 1. 检出代码
