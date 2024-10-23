@@ -25,6 +25,11 @@ jobs:
             dockerfile: ./compose/production/postgres/Dockerfile
             architectures: linux/amd64,linux/arm64
             path: ./compose/production/postgres/
+          - project: ubuntu
+            context: .
+            dockerfile: ./compose/production/ubuntu/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/ubuntu/
           - project: traefik
             context: .
             dockerfile: ./compose/production/traefik/Dockerfile
