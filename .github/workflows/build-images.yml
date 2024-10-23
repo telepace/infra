@@ -75,11 +75,12 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Check if relevant files changed
+      - name: Check if relevant files changed or if it is a tag push
         id: changes
-        if: github.event_name != 'push' || startsWith(github.ref, 'refs/tags/') == false
         run: |
-          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^${{ matrix.path }}"; then
+          if [[ "${{ github.ref }}" == refs/tags/* ]]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          elif git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^${{ matrix.path }}"; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
