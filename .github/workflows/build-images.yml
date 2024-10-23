@@ -51,6 +51,10 @@ jobs:
             context: .
             dockerfile: ./compose/production/kong/Dockerfile
             architectures: linux/amd64,linux/arm64
+          - project: ubuntu
+            context: .
+            dockerfile: ./compose/production/ubuntu/Dockerfile
+            architectures: linux/amd64,linux/arm64
 
     steps:
       # 1. 检出代码
