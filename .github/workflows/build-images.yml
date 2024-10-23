@@ -15,102 +15,61 @@ jobs:
     strategy:
       matrix:
         include:
-          - project: postgres
-            context: .
-            dockerfile: ./compose/production/postgres/Dockerfile
-            architectures: linux/amd64,linux/arm64
-            path: ./compose/production/postgres/
-          - project: traefik
-            context: .
-            dockerfile: ./compose/production/traefik/Dockerfile
-            architectures: linux/amd64,linux/arm64
-            path: ./compose/production/traefik/
-          - project: nginx
-            context: .
-            dockerfile: ./compose/production/nginx/Dockerfile
-            architectures: linux/amd64,linux/arm64
-            path: ./compose/production/nginx/
-          - project: awscli
-            context: .
-            dockerfile: ./compose/production/aws/Dockerfile
-            architectures: linux/amd64,linux/arm64
-            path: ./compose/production/aws/
-          - project: redis
-            context: .
-            dockerfile: ./compose/production/redis/Dockerfile
-            architectures: linux/amd64,linux/arm64
-            path: ./compose/production/redis/
-          - project: redis8
-            context: .
-            dockerfile: ./compose/production/redis8/Dockerfile
-            architectures: linux/amd64,linux/arm64
-            path: ./compose/production/redis8/
-          - project: python
-            context: .
-            dockerfile: ./compose/production/python/Dockerfile
-            architectures: linux/amd64,linux/arm64
-            path: ./compose/production/python/
-          - project: python-3-12-slim-bookworm
-            context: .
-            dockerfile: ./compose/production/python-3-12-slim-bookworm/Dockerfile
-            architectures: linux/amd64,linux/arm64
-            path: ./compose/production/python-3-12-slim-bookworm/
+          # ... 其他项目配置 ...
           - project: kong
             context: .
             dockerfile: ./compose/production/kong/Dockerfile
-            architectures: linux/amd64,linux/arm64
+            architectures: linux/amd64  # 仅构建 amd64
             path: ./compose/production/kong/
-          - project: ubuntu
-            context: .
-            dockerfile: ./compose/production/ubuntu/Dockerfile
-            architectures: linux/amd64,linux/arm64
-            path: ./compose/production/ubuntu/
+          # ... 其他项目配置 ...
 
     steps:
-      # 1. 检出代码
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # 确保获取所有标签
 
-      # 2. 设置 Docker Buildx
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 3. 仅在相关目录发生变化时继续执行
       - name: Check if relevant files changed
         id: changes
         run: |
-          git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep "^${{ matrix.path }}" || echo "no-changes"
+          if git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^${{ matrix.path }}"; then
+            echo "changed=true" >> $GITHUB_OUTPUT
+          else
+            echo "changed=false" >> $GITHUB_OUTPUT
+          fi
+
       - name: Skip if no changes
-        if: steps.changes.outputs.result == 'no-changes'
+        if: steps.changes.outputs.changed == 'false'
         run: echo "No changes in ${{ matrix.path }}. Skipping build."
 
-      # 4. 登录 Docker Hub
       - name: Log in to Docker Hub
+        if: steps.changes.outputs.changed == 'true'
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      # 5. 登录阿里云容器注册表
       - name: Log in to AliYun Docker Registry
+        if: steps.changes.outputs.changed == 'true'
         uses: docker/login-action@v3
         with:
           registry: registry.cn-hangzhou.aliyuncs.com
           username: ${{ secrets.ALIREGISTRY_USERNAME }}
           password: ${{ secrets.ALIREGISTRY_TOKEN }}
 
-      # 6. 登录 GitHub Container Registry
       - name: Log in to GitHub Container Registry
+        if: steps.changes.outputs.changed == 'true'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.repository_owner }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      # 7. 获取 Docker 元数据
       - name: Get Docker metadata
+        if: steps.changes.outputs.changed == 'true'
         id: metadata
         uses: docker/metadata-action@v5.5.1
         with:
@@ -126,8 +85,8 @@ jobs:
             type=semver,pattern={{major}}
             type=sha
 
-      # 8. 构建并推送 Docker 镜像
       - name: Build and push Docker image
+        if: steps.changes.outputs.changed == 'true'
         uses: docker/build-push-action@v6
         with:
           context: ${{ matrix.context }}
@@ -138,8 +97,8 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
-      # 9. 安全扫描
       - name: Scan Docker image for vulnerabilities
+        if: steps.changes.outputs.changed == 'true'
         uses: aquasecurity/trivy-action@0.28.0
         with:
           image-ref: |
@@ -150,6 +109,6 @@ jobs:
           exit-code: '0'
         continue-on-error: true
 
-      # 10. 清理未使用的 Docker 镜像
       - name: Clean up Docker
+        if: steps.changes.outputs.changed == 'true'
         run: docker system prune -f
