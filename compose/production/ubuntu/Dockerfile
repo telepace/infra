@@ -37,7 +37,7 @@ RUN apt-get update && \
     mkdir -p /telepace/tools
 
 COPY ./README.md ./LICENSE ./
-COPY get_os.sh get_arch.sh source.sh /telepace/tools/
+COPY ./compose/production/ubuntu/get_os.sh ./compose/production/ubuntu/get_arch.sh ./compose/production/ubuntu/source.sh /telepace/tools/
 
 RUN /telepace/tools/get_os.sh > ~/os && \
     /telepace/tools/get_arch.sh > ~/arch && \
