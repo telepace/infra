@@ -15,13 +15,51 @@ jobs:
     strategy:
       matrix:
         include:
-          # ... 其他项目配置 ...
           - project: kong
             context: .
             dockerfile: ./compose/production/kong/Dockerfile
             architectures: linux/amd64  # 仅构建 amd64
             path: ./compose/production/kong/
-          # ... 其他项目配置 ...
+          - project: postgres
+            context: .
+            dockerfile: ./compose/production/postgres/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/postgres/
+          - project: traefik
+            context: .
+            dockerfile: ./compose/production/traefik/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/traefik/
+          - project: nginx
+            context: .
+            dockerfile: ./compose/production/nginx/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/nginx/
+          - project: awscli
+            context: .
+            dockerfile: ./compose/production/aws/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/aws/
+          - project: redis
+            context: .
+            dockerfile: ./compose/production/redis/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/redis/
+          - project: redis8
+            context: .
+            dockerfile: ./compose/production/redis8/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/redis8/
+          - project: python
+            context: .
+            dockerfile: ./compose/production/python/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/python/
+          - project: python-3-12-slim-bookworm
+            context: .
+            dockerfile: ./compose/production/python-3-12-slim-bookworm/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/python-3-12-slim-bookworm/
 
     steps:
       - name: Checkout code
