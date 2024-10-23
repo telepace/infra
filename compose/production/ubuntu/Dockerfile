@@ -13,7 +13,8 @@ ARG GOPROXY=https://goproxy.cn,direct
 ENV GO111MODULE=$GO111MODULE \
     GOPROXY=$GOPROXY \
     TELEPACE_WORKDIR=/telepace \
-    TELEPACE_APP=/telepace/app
+    TELEPACE_APP=/telepace/app \
+    DEBIAN_FRONTEND=noninteractive
 
 # Telepace Config Should pass the path
 ENV TELEPACE_APP_CONFIG_NAME=$TELEPACE_APP/config \
@@ -36,14 +37,16 @@ RUN apt-get update && \
     done && \
     mkdir -p /telepace/tools
 
+# Copy necessary files
 COPY ./README.md ./LICENSE ./
 COPY ./compose/production/ubuntu/get_os.sh ./compose/production/ubuntu/get_arch.sh ./compose/production/ubuntu/source.sh /telepace/tools/
 
-RUN /telepace/tools/get_os.sh > ~/os && \
+# Ensure the scripts are executable and run them
+RUN chmod +x /telepace/tools/*.sh && \
+    /telepace/tools/get_os.sh > ~/os && \
     /telepace/tools/get_arch.sh > ~/arch && \
     echo "export OS=$(cat ~/os)" >> /etc/profile && \
     echo "export ARCH=$(cat ~/arch)" >> /etc/profile && \
-    chmod +x /telepace/tools/*.sh && \
     cp /telepace/tools/get_os.sh /usr/local/bin/get_os && \
     cp /telepace/tools/get_arch.sh /usr/local/bin/get_arch
 
@@ -53,5 +56,6 @@ VOLUME ["/telepace", \
 
 WORKDIR /telepace
 
+# Define ONBUILD triggers for later stages
 ONBUILD RUN OS=$(get_os) && \
             ARCH=$(get_arch)
