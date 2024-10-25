@@ -39,23 +39,9 @@ RUN apt-get update && \
 
 # Copy necessary files
 COPY ./README.md ./LICENSE ./
-COPY ./compose/production/ubuntu/get_os.sh ./compose/production/ubuntu/get_arch.sh ./compose/production/ubuntu/source.sh /telepace/tools/
-
-# Ensure the scripts are executable and run them
-RUN chmod +x /telepace/tools/*.sh && \
-    /telepace/tools/get_os.sh > ~/os && \
-    /telepace/tools/get_arch.sh > ~/arch && \
-    echo "export OS=$(cat ~/os)" >> /etc/profile && \
-    echo "export ARCH=$(cat ~/arch)" >> /etc/profile && \
-    cp /telepace/tools/get_os.sh /usr/local/bin/get_os && \
-    cp /telepace/tools/get_arch.sh /usr/local/bin/get_arch
 
 # Set directory to map logs, config files, scripts, and SDK
 VOLUME ["/telepace", \
-        "/telepace/app/logs", "/telepace/app/config", "/telepace/app/scripts", "/telepace/app/_output/bin"]
+        "/telepace/app/logs", "/telepace/app/config", "/telepace/app/scripts"]
 
-WORKDIR /telepace
-
-# Define ONBUILD triggers for later stages
-ONBUILD RUN OS=$(get_os) && \
-            ARCH=$(get_arch)
+WORKDIR /telepace/app
