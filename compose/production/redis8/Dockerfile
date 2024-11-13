@@ -1,4 +1,4 @@
-FROM redis:8.0-M01
+FROM redis:8.0-M02
 
 # 设置时区
 ENV TZ=Asia/Shanghai
