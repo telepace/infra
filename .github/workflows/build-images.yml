@@ -144,7 +144,7 @@ jobs:
 
       - name: Scan Docker image for vulnerabilities
         if: steps.changes.outputs.changed == 'true'
-        uses: aquasecurity/trivy-action@0.28.0
+        uses: aquasecurity/trivy-action@0.29.0
         with:
           image-ref: |
             docker.io/${{ secrets.DOCKER_USERNAME }}/ai_feedback_production_${{ matrix.project }}:${{ steps.metadata.outputs.version }}
