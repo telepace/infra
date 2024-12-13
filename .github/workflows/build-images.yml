@@ -65,6 +65,31 @@ jobs:
             dockerfile: ./compose/production/python-3-12-slim-bookworm/Dockerfile
             architectures: linux/amd64,linux/arm64
             path: ./compose/production/python-3-12-slim-bookworm/
+          - project: prometheus
+            context: .
+            dockerfile: ./compose/production/prometheus/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/prometheus/
+          - project: node_exporter
+            context: .
+            dockerfile: ./compose/production/node_exporter/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/node_exporter/
+          - project: grafana
+            context: .
+            dockerfile: ./compose/production/grafana/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/grafana/
+          - project: loki
+            context: .
+            dockerfile: ./compose/production/loki/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/loki/
+          - project: promtail
+            context: .
+            dockerfile: ./compose/production/promtail/Dockerfile
+            architectures: linux/amd64,linux/arm64
+            path: ./compose/production/promtail/
 
     steps:
       - name: Checkout code
