@@ -1,4 +1,4 @@
-FROM postgres:17
+FROM postgres:18
 
 COPY ./compose/production/postgres/postgresql.conf /etc/postgresql/postgresql.conf
 COPY ./compose/production/postgres/maintenance /usr/local/bin/maintenance
