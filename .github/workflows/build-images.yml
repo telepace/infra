@@ -105,7 +105,7 @@ jobs:
         run: |
           if [[ "${{ github.ref }}" == refs/tags/* ]]; then
             echo "changed=true" >> $GITHUB_OUTPUT
-          elif git diff --name-only ${{ github.event.before }} ${{ github.sha }} | grep -q "^${{ matrix.path }}"; then
+          elif [[ -n "$(git diff --name-only ${{ github.event.before }} ${{ github.sha }} -- "${{ matrix.path }}")" ]]; then
             echo "changed=true" >> $GITHUB_OUTPUT
           else
             echo "changed=false" >> $GITHUB_OUTPUT
