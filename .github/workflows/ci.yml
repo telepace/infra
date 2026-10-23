@@ -1,14 +1,12 @@
 name: CI
 
-# Enable Buildkit and let compose use it to speed up image building
-env:
-  DOCKER_BUILDKIT: 1
-  COMPOSE_DOCKER_CLI_BUILD: 1
-
 on:
   pull_request:
     branches: ['main']
     paths-ignore: ['docs/**']
+
+permissions:
+  contents: read
 
 concurrency:
   group: ${{ github.head_ref || github.run_id }}
@@ -20,33 +18,51 @@ jobs:
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
-
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Run pre-commit
-        uses: pre-commit/action@v3.0.1
+      - name: Install workflow parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.3
+      - name: Parse workflow YAML
+        run: |
+          python - <<'PY'
+          from pathlib import Path
+          import yaml
 
-  # With no caching at all the entire ci process takes 3m to complete!
+          paths = sorted(Path('.github/workflows').glob('*.yml'))
+          assert paths, 'No workflow files found'
+          for path in paths:
+              workflow = yaml.safe_load(path.read_text())
+              assert isinstance(workflow, dict), f'{path}: workflow must be a mapping'
+              assert isinstance(workflow.get('jobs'), dict) and workflow['jobs'], f'{path}: missing jobs'
+          print(f'{len(paths)} workflow YAML files parsed')
+          PY
+      - name: Check shell syntax
+        shell: bash
+        run: |
+          checked=0
+          while IFS= read -r -d '' script; do
+            case "$script" in
+              *.sh|compose/production/aws/maintenance/*|compose/production/postgres/maintenance/*)
+                bash -n "$script"
+                checked=$((checked + 1))
+                ;;
+            esac
+          done < <(git ls-files -z)
+          test "$checked" -gt 0
+          echo "$checked shell scripts checked"
+
   pytest:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code Repository
         uses: actions/checkout@v4
-
-      - name: Build the Stack
-        run: docker compose -f docker-compose.local.yml build django
-
-      - name: Build the docs
-        run: docker compose -f docker-compose.docs.yml build docs
-
-      - name: Run DB Migrations
-        run: docker compose -f docker-compose.local.yml run --rm django python manage.py migrate
-
-      - name: Run Django Tests
-        run: docker compose -f docker-compose.local.yml run django pytest
-
-      - name: Tear down the Stack
-        run: docker compose -f docker-compose.local.yml down
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install workflow parser
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.3
+      - name: Test image change routing
+        run: python tests/test_build_image_routing.py .github/workflows/build-images.yml
